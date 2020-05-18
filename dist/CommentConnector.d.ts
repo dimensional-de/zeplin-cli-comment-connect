@@ -9,5 +9,6 @@ declare class CommentConnector implements ConnectPlugin {
     process(context: ComponentConfig): Promise<ComponentData>;
     supports(context: ComponentConfig): boolean;
     private getSnippetFile;
+    private reformat;
 }
 export default CommentConnector;

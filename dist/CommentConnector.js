@@ -18,16 +18,19 @@ const comment_parser_1 = __importDefault(require("comment-parser"));
 class CommentConnector {
     constructor() {
         this.supportedFileExtensions = [".css", ".scss", ".js", ".ts"];
-        this.snippetLanguages = {
-            ".html": "html" /* HTML */
-        };
+        this.snippetLanguages = {};
         this.snippetPath = path_1.default.resolve(process.cwd(), "snippets");
     }
     // eslint-disable-next-line require-await
     init(pluginContext) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (pluginContext.config && "snippetPath" in pluginContext.config) {
-                this.snippetPath = path_1.default.resolve(process.cwd(), pluginContext.config.snippetPath);
+            if (pluginContext.config) {
+                if (typeof pluginContext.config.snippetPath === "string") {
+                    this.snippetPath = path_1.default.resolve(process.cwd(), pluginContext.config.snippetPath);
+                }
+                if (pluginContext.config.snippetLanguages instanceof Object) {
+                    this.snippetLanguages = Object.assign(this.snippetLanguages, pluginContext.config.snippetLanguages);
+                }
             }
             return Promise.resolve();
         });
@@ -44,12 +47,12 @@ class CommentConnector {
             let snippet = "";
             let lang = "html" /* HTML */;
             if (componentComment) {
-                description = componentComment.description.trim();
+                description = this.reformat(componentComment.description);
                 const [snippetNotation] = componentComment.tags.filter(tag => tag.tag === "snippet");
                 if (snippetNotation) {
-                    const snippetType = snippetNotation.name.trim().toLowerCase();
+                    const snippetType = this.reformat(snippetNotation.name).toLowerCase();
                     let snippetFile = "";
-                    if (snippetType.indexOf("<") === 0) {
+                    if (snippetType.indexOf("<") === 0 || snippetType === "") {
                         snippet = `${snippetNotation.name.trim()} ${snippetNotation.description}`;
                     }
                     else if (snippetType === "file") {
@@ -61,7 +64,7 @@ class CommentConnector {
                     if (snippetFile !== "") {
                         try {
                             const snippetFileContent = yield fs_extra_1.readFile(snippetFile);
-                            const snippetFileExt = path_1.default.extname(snippetNotation.description.trim());
+                            const snippetFileExt = path_1.default.extname(snippetFile.trim());
                             snippet = snippetFileContent.toString();
                             lang = this.snippetLanguages[snippetFileExt] || snippetFileExt.substr(1);
                         }
@@ -76,8 +79,8 @@ class CommentConnector {
                 }
             }
             return {
-                description: description.replace(/([^\n])(\n)(?!\n)/, "$1 "),
-                snippet: snippet.replace("\r\n", "\n").trimRight(),
+                description: description.replace(/([^\n])(\n)(?!\n)/g, "$1 "),
+                snippet: this.reformat(snippet),
                 lang: lang || "html" /* HTML */
             };
         });
@@ -91,6 +94,9 @@ class CommentConnector {
             return path_1.default.resolve(this.snippetPath, snippetFile.substr(1));
         }
         return path_1.default.resolve(path_1.default.dirname(componentFile), snippetFile);
+    }
+    reformat(value) {
+        return value.replace(/\r\n/g, "\n").trim();
     }
 }
 exports.default = CommentConnector;

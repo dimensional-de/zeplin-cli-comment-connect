@@ -7,16 +7,19 @@ import parse, { Comment } from "comment-parser";
 
 class CommentConnector implements ConnectPlugin {
     supportedFileExtensions = [".css", ".scss", ".js", ".ts"];
-    snippetLanguages: { [extension: string]: PrismLang } = {
-        ".html": PrismLang.HTML
-    }
+    snippetLanguages: { [extension: string]: PrismLang } = {}
 
     snippetPath = path.resolve(process.cwd(), "snippets");
 
     // eslint-disable-next-line require-await
     async init(pluginContext: PluginContext): Promise<void> {
-        if (pluginContext.config && "snippetPath" in pluginContext.config) {
-            this.snippetPath = path.resolve(process.cwd(), pluginContext.config.snippetPath as string);
+        if (pluginContext.config) {
+            if (typeof pluginContext.config.snippetPath === "string") {
+                this.snippetPath = path.resolve(process.cwd(), pluginContext.config.snippetPath as string);
+            }
+            if (pluginContext.config.snippetLanguages instanceof Object) {
+                this.snippetLanguages = Object.assign(this.snippetLanguages, pluginContext.config.snippetLanguages);
+            }
         }
         return Promise.resolve();
     }
@@ -36,14 +39,14 @@ class CommentConnector implements ConnectPlugin {
         let snippet = "";
         let lang = PrismLang.HTML;
         if (componentComment) {
-            description = componentComment.description.trim();
+            description = this.reformat(componentComment.description);
             const [snippetNotation] = componentComment.tags.filter(
                 tag => tag.tag === "snippet"
             );
             if (snippetNotation) {
-                const snippetType = snippetNotation.name.trim().toLowerCase();
+                const snippetType = this.reformat(snippetNotation.name).toLowerCase();
                 let snippetFile = "";
-                if (snippetType.indexOf("<") === 0) {
+                if (snippetType.indexOf("<") === 0 || snippetType === "") {
                     snippet = `${snippetNotation.name.trim()} ${snippetNotation.description}`;
                 } else if (snippetType === "file") {
                     snippetFile = this.getSnippetFile(snippetNotation.description.trim(), context.path);
@@ -54,7 +57,7 @@ class CommentConnector implements ConnectPlugin {
                 if (snippetFile !== "") {
                     try {
                         const snippetFileContent = await readFile(snippetFile);
-                        const snippetFileExt = path.extname(snippetNotation.description.trim());
+                        const snippetFileExt = path.extname(snippetFile.trim());
                         snippet = snippetFileContent.toString();
                         lang = this.snippetLanguages[snippetFileExt] || (snippetFileExt.substr(1) as PrismLang);
                     } catch (e) {
@@ -67,8 +70,8 @@ class CommentConnector implements ConnectPlugin {
             }
         }
         return {
-            description: description.replace(/([^\n])(\n)(?!\n)/, "$1 "),
-            snippet: snippet.replace("\r\n", "\n").trimRight(),
+            description: description.replace(/([^\n])(\n)(?!\n)/g, "$1 "),
+            snippet: this.reformat(snippet),
             lang: lang || PrismLang.HTML
         };
     }
@@ -83,6 +86,10 @@ class CommentConnector implements ConnectPlugin {
             return path.resolve(this.snippetPath, snippetFile.substr(1));
         }
         return path.resolve(path.dirname(componentFile), snippetFile);
+    }
+
+    private reformat(value: string): string {
+        return value.replace(/\r\n/g, "\n").trim();
     }
 }
 

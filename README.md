@@ -23,6 +23,7 @@ zeplin connect -p @dimensional/zeplin-cli-comment-connect
 | Property             | Description                                                                  |
 |----------------------|------------------------------------------------------------------------------|
 | `snippetPath`        | A base path for external snippets files that start with `/`. The default value is `snippets`.|
+| `snippetLanguages`   | A mapping of file extensions to languages. Fallback value is the extension without the dot.| |
 
 Here's a sample configuration file (`.zeplin/components.json`):
 
@@ -31,7 +32,10 @@ Here's a sample configuration file (`.zeplin/components.json`):
     "plugins" : [{
         "name": "@dimensional/zeplin-cli-comment-connect",
         "config": {
-            "snippetPath": "snippets"
+            "snippetPath": "snippets",
+            "snippetLanguages": {
+               ".js": "javascript" 
+            }
         }
     }]
 }
