@@ -1,4 +1,5 @@
 import Plugin from "../src/CommentConnector";
+import mockConsole from "jest-mock-console";
 
 describe("Connected Components Comment Plugin", () => {
     beforeEach(() => {
@@ -87,5 +88,24 @@ describe("Connected Components Comment Plugin", () => {
             "</div>"
         );
         expect(componentCode.lang).toEqual("html");
+    });
+
+    test("ignores invalid snippet file", async () => {
+        const plugin = new Plugin();
+
+        const restoreConsole = mockConsole();
+        const componentCode = await plugin.process(
+            {
+                path: "test/samples/_componentWithInvalidSnippetFile.scss",
+                zeplinNames: []
+            }
+        );
+
+        expect(console.warn).toHaveBeenCalledWith(
+            `Can not load snippet file: ${__dirname}\\_non-existing.html`
+        );
+        expect(componentCode.snippet).toEqual("");
+        expect(componentCode.lang).toEqual("html");
+        restoreConsole();
     });
 });
