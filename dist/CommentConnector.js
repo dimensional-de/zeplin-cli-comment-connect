@@ -21,22 +21,22 @@ class CommentConnector {
         this.snippetLanguages = {
             ".html": "html" /* HTML */
         };
-        this.snippetPath = path_1.default.resolve(process.cwd(), 'snippets');
+        this.snippetPath = path_1.default.resolve(process.cwd(), "snippets");
     }
+    // eslint-disable-next-line require-await
     init(pluginContext) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (pluginContext.config && 'snippetPath' in pluginContext.config) {
+            if (pluginContext.config && "snippetPath" in pluginContext.config) {
                 this.snippetPath = path_1.default.resolve(process.cwd(), pluginContext.config.snippetPath);
             }
+            return Promise.resolve();
         });
     }
     process(context) {
         return __awaiter(this, void 0, void 0, function* () {
             const file = yield fs_extra_1.readFile(path_1.default.resolve(context.path));
-            const comments = comment_parser_1.default(file.toString());
-            let componentComment = comments.filter((comment) => {
-                comment.tags.find((tag) => tag.tag === 'zeplin');
-            })[0];
+            const comments = comment_parser_1.default(file.toString(), { trim: false });
+            let [componentComment] = comments.filter(comment => comment.tags.find(tag => tag.tag === "zeplin"));
             if (!componentComment && comments.length > 0) {
                 componentComment = comments[0];
             }
@@ -44,21 +44,21 @@ class CommentConnector {
             let snippet = "";
             let lang = "html" /* HTML */;
             if (componentComment) {
-                description = componentComment.description;
-                const snippetNotation = componentComment.tags.filter((tag) => tag.tag === 'snippet')[0];
+                description = componentComment.description.trim();
+                const [snippetNotation] = componentComment.tags.filter(tag => tag.tag === "snippet");
                 if (snippetNotation) {
                     const snippetType = snippetNotation.name.trim().toLowerCase();
-                    let snippetFile = '';
-                    if (snippetType.indexOf('<') === 0) {
-                        snippet = snippetNotation.name.trim() + ' ' + snippetNotation.description;
+                    let snippetFile = "";
+                    if (snippetType.indexOf("<") === 0) {
+                        snippet = `${snippetNotation.name.trim()} ${snippetNotation.description}`;
                     }
-                    else if (snippetType === 'file') {
+                    else if (snippetType === "file") {
                         snippetFile = this.getSnippetFile(snippetNotation.description.trim(), context.path);
                     }
                     else if (snippetType.match(/\.*\//)) {
                         snippetFile = this.getSnippetFile(snippetType, context.path);
                     }
-                    if (snippetFile !== '') {
+                    if (snippetFile !== "") {
                         try {
                             const snippetFileContent = yield fs_extra_1.readFile(snippetFile);
                             const snippetFileExt = path_1.default.extname(snippetNotation.description.trim());
@@ -66,17 +66,17 @@ class CommentConnector {
                             lang = this.snippetLanguages[snippetFileExt] || snippetFileExt.substr(1);
                         }
                         catch (e) {
-                            console.warn('Can not load snippet file: ' + snippetFile);
+                            console.warn(`Can not load snippet file: ${snippetFile}`);
                         }
                     }
-                    else if (snippetType !== '') {
+                    else if (snippetType !== "") {
                         snippet = snippetNotation.description;
                         lang = snippetType;
                     }
                 }
             }
             return {
-                description: description.replace(/([^\n])(\n)(?!\n)/, '$1 '),
+                description: description.replace(/([^\n])(\n)(?!\n)/, "$1 "),
                 snippet: snippet.replace("\r\n", "\n").trimRight(),
                 lang: lang || "html" /* HTML */
             };
@@ -87,7 +87,7 @@ class CommentConnector {
         return this.supportedFileExtensions.includes(fileExtension);
     }
     getSnippetFile(snippetFile, componentFile) {
-        if (snippetFile.substr(0, 1) === '/') {
+        if (snippetFile.substr(0, 1) === "/") {
             return path_1.default.resolve(this.snippetPath, snippetFile.substr(1));
         }
         return path_1.default.resolve(path_1.default.dirname(componentFile), snippetFile);

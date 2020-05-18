@@ -21,7 +21,10 @@ module.exports = {
             typescript: {
                 directory: "./tsconfig.json"
             }
-        }
+        },
+        "import/ignore": [
+            "comment-parser"
+        ]
     },
     rules: {
         "capitalized-comments": "error",

@@ -7,7 +7,7 @@ from documentation comments. We use this to for (S)CSS themes.
 ## Installation 
 
 ```sh
-npm install -g @dimensional/zeplin-cli-comment-connect
+npm install --save-dev @dimensional/zeplin-cli-comment-connect
 ```
 
 ## Usage

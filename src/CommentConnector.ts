@@ -1,32 +1,34 @@
-import {ComponentConfig, ComponentData, ConnectPlugin, PluginContext, PrismLang} from "@zeplin/cli";
+import {
+    ComponentConfig, ComponentData, ConnectPlugin, PluginContext, PrismLang
+} from "@zeplin/cli";
 import path from "path";
-import {readFile} from "fs-extra";
-import parse, {Comment} from "comment-parser";
+import { readFile } from "fs-extra";
+import parse, { Comment } from "comment-parser";
 
 class CommentConnector implements ConnectPlugin {
     supportedFileExtensions = [".css", ".scss", ".js", ".ts"];
-    snippetLanguages: {[extension: string]: PrismLang} = {
+    snippetLanguages: { [extension: string]: PrismLang } = {
         ".html": PrismLang.HTML
     }
 
-    snippetPath = path.resolve(process.cwd(), 'snippets');
+    snippetPath = path.resolve(process.cwd(), "snippets");
 
+    // eslint-disable-next-line require-await
     async init(pluginContext: PluginContext): Promise<void> {
-      if ( pluginContext.config && 'snippetPath' in pluginContext.config) {
-          this.snippetPath = path.resolve(process.cwd(), pluginContext.config.snippetPath as string);
-      }
+        if (pluginContext.config && "snippetPath" in pluginContext.config) {
+            this.snippetPath = path.resolve(process.cwd(), pluginContext.config.snippetPath as string);
+        }
+        return Promise.resolve();
     }
 
     async process(context: ComponentConfig): Promise<ComponentData> {
         const file = await readFile(path.resolve(context.path));
         const comments = parse(file.toString(), { trim: false });
-        let componentComment = comments.filter(
-            (comment) => {
-                comment.tags.find(
-                    (tag) => tag.tag === 'zeplin'
-                )
-            }
-        )[0];
+        let [componentComment] = comments.filter(
+            comment => comment.tags.find(
+                tag => tag.tag === "zeplin"
+            )
+        );
         if (!componentComment && comments.length > 0) {
             componentComment = comments[0] as Comment;
         }
@@ -35,37 +37,37 @@ class CommentConnector implements ConnectPlugin {
         let lang = PrismLang.HTML;
         if (componentComment) {
             description = componentComment.description.trim();
-            const snippetNotation = componentComment.tags.filter(
-                (tag) => tag.tag === 'snippet'
-            )[0];
+            const [snippetNotation] = componentComment.tags.filter(
+                tag => tag.tag === "snippet"
+            );
             if (snippetNotation) {
                 const snippetType = snippetNotation.name.trim().toLowerCase();
-                let snippetFile = '';
-                if (snippetType.indexOf('<') === 0) {
-                    snippet = snippetNotation.name.trim() + ' ' + snippetNotation.description;
-                } else if (snippetType === 'file') {
+                let snippetFile = "";
+                if (snippetType.indexOf("<") === 0) {
+                    snippet = `${snippetNotation.name.trim()} ${snippetNotation.description}`;
+                } else if (snippetType === "file") {
                     snippetFile = this.getSnippetFile(snippetNotation.description.trim(), context.path);
                 } else if (snippetType.match(/\.*\//)) {
                     snippetFile = this.getSnippetFile(snippetType, context.path);
                 }
 
-                if (snippetFile !== '') {
+                if (snippetFile !== "") {
                     try {
                         const snippetFileContent = await readFile(snippetFile);
                         const snippetFileExt = path.extname(snippetNotation.description.trim());
                         snippet = snippetFileContent.toString();
                         lang = this.snippetLanguages[snippetFileExt] || (snippetFileExt.substr(1) as PrismLang);
-                    } catch(e) {
-                        console.warn('Can not load snippet file: ' + snippetFile);
+                    } catch (e) {
+                        console.warn(`Can not load snippet file: ${snippetFile}`);
                     }
-                } else if (snippetType !== '') {
+                } else if (snippetType !== "") {
                     snippet = snippetNotation.description;
                     lang = snippetType as PrismLang;
                 }
             }
         }
         return {
-            description: description.replace(/([^\n])(\n)(?!\n)/, '$1 '),
+            description: description.replace(/([^\n])(\n)(?!\n)/, "$1 "),
             snippet: snippet.replace("\r\n", "\n").trimRight(),
             lang: lang || PrismLang.HTML
         };
@@ -76,8 +78,8 @@ class CommentConnector implements ConnectPlugin {
         return this.supportedFileExtensions.includes(fileExtension);
     }
 
-    private getSnippetFile(snippetFile: string, componentFile: string) {
-        if (snippetFile.substr(0, 1) === '/') {
+    private getSnippetFile(snippetFile: string, componentFile: string): string {
+        if (snippetFile.substr(0, 1) === "/") {
             return path.resolve(this.snippetPath, snippetFile.substr(1));
         }
         return path.resolve(path.dirname(componentFile), snippetFile);
