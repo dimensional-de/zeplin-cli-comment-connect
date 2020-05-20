@@ -4,7 +4,7 @@
 [Zeplin CLI](https://github.com/zeplin/cli) plugin to generate descriptions and code snippets 
 from documentation comments. We use this to for (S)CSS themes.
 
-![](https://github.com/dimensional/zeplin-cli-comment-connect/blob/master/docs/example.png?raw=true)
+![](https://github.com/dimensional-de/zeplin-cli-comment-connect/blob/master/docs/example.png?raw=true)
 
 ## Installation 
 
