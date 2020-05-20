@@ -1,6 +1,6 @@
 {
   "name": "@dimensional-de/zeplin-cli-comment-connect",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Zeplin CLI Connected Components - Comment Plugin",
   "main": "dist/CommentConnector",
   "scripts": {
