@@ -9,7 +9,7 @@ from documentation comments. We use this to for (S)CSS themes.
 ## Installation 
 
 ```sh
-npm install --save-dev @dimensional/zeplin-cli-comment-connect
+npm install --save-dev @dimensional-de/zeplin-cli-comment-connect
 ```
 
 ## Usage
@@ -17,7 +17,7 @@ npm install --save-dev @dimensional/zeplin-cli-comment-connect
 Run CLI `connect` command using the plugin.
 
 ```sh
-zeplin connect -p @dimensional/zeplin-cli-comment-connect
+zeplin connect -p @dimensional-de/zeplin-cli-comment-connect
 ```
 
 ### Configuration
@@ -32,7 +32,7 @@ Here's a sample configuration file (`.zeplin/components.json`):
 ```json
 {
     "plugins" : [{
-        "name": "@dimensional/zeplin-cli-comment-connect",
+        "name": "@dimensional-de/zeplin-cli-comment-connect",
         "config": {
             "snippetPath": "snippets",
             "snippetLanguages": {
