@@ -37,7 +37,7 @@
     "@typescript-eslint/parser": "^3.0.2",
     "@zeplin/cli": "^1.0.3",
     "@zeplin/eslint-config": "^2.3.1",
-    "eslint": "^7.1.0",
+    "eslint": "^6.8.0",
     "eslint-import-resolver-typescript": "^2.0.0",
     "husky": "^4.2.5",
     "jest": "^26.0.1",

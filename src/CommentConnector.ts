@@ -44,10 +44,11 @@ class CommentConnector implements ConnectPlugin {
                 tag => tag.tag === "snippet"
             );
             if (snippetNotation) {
-                const snippetType = this.reformat(snippetNotation.name).toLowerCase();
+                let snippetType = this.reformat(snippetNotation.name).toLowerCase();
                 let snippetFile = "";
                 if (snippetType.indexOf("<") === 0 || snippetType === "") {
                     snippet = `${snippetNotation.name.trim()} ${snippetNotation.description}`;
+                    snippetType = "";
                 } else if (snippetType === "file") {
                     snippetFile = this.getSnippetFile(snippetNotation.description.trim(), context.path);
                 } else if (snippetType.match(/\.*\//)) {
