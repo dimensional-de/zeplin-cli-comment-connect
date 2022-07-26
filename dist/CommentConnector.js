@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
 const fs_extra_1 = require("fs-extra");
-const comment_parser_1 = __importDefault(require("comment-parser"));
+const comment_parser_1 = require("comment-parser");
 class CommentConnector {
     constructor() {
         this.supportedFileExtensions = [".css", ".scss", ".js", ".ts"];
@@ -37,23 +37,26 @@ class CommentConnector {
     }
     process(context) {
         return __awaiter(this, void 0, void 0, function* () {
-            const file = yield fs_extra_1.readFile(path_1.default.resolve(context.path));
-            const comments = comment_parser_1.default(file.toString(), { trim: false });
+            const file = yield (0, fs_extra_1.readFile)(path_1.default.resolve(context.path));
+            const comments = (0, comment_parser_1.parse)(file.toString(), {
+                spacing: 'preserve'
+            });
             let [componentComment] = comments.filter(comment => comment.tags.find(tag => tag.tag === "zeplin"));
             if (!componentComment && comments.length > 0) {
                 componentComment = comments[0];
             }
             let description = "";
             let snippet = "";
-            let lang = "html" /* HTML */;
+            let lang = "html" /* PrismLang.HTML */;
             if (componentComment) {
                 description = this.reformat(componentComment.description);
                 const [snippetNotation] = componentComment.tags.filter(tag => tag.tag === "snippet");
                 if (snippetNotation) {
-                    const snippetType = this.reformat(snippetNotation.name).toLowerCase();
+                    let snippetType = this.reformat(snippetNotation.name).toLowerCase();
                     let snippetFile = "";
                     if (snippetType.indexOf("<") === 0 || snippetType === "") {
                         snippet = `${snippetNotation.name.trim()} ${snippetNotation.description}`;
+                        snippetType = "";
                     }
                     else if (snippetType === "file") {
                         snippetFile = this.getSnippetFile(snippetNotation.description.trim(), context.path);
@@ -63,7 +66,7 @@ class CommentConnector {
                     }
                     if (snippetFile !== "") {
                         try {
-                            const snippetFileContent = yield fs_extra_1.readFile(snippetFile);
+                            const snippetFileContent = yield (0, fs_extra_1.readFile)(snippetFile);
                             const snippetFileExt = path_1.default.extname(snippetFile.trim());
                             snippet = snippetFileContent.toString();
                             lang = this.snippetLanguages[snippetFileExt] || snippetFileExt.substr(1);
@@ -81,7 +84,7 @@ class CommentConnector {
             return {
                 description: description.replace(/([^\n])(\n)(?!\n)/g, "$1 "),
                 snippet: this.reformat(snippet),
-                lang: lang || "html" /* HTML */
+                lang: lang || "html" /* PrismLang.HTML */
             };
         });
     }

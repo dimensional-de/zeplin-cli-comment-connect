@@ -3,7 +3,7 @@ import {
 } from "@zeplin/cli";
 import path from "path";
 import { readFile } from "fs-extra";
-import parse, { Comment } from "comment-parser";
+import { parse } from "comment-parser";
 
 class CommentConnector implements ConnectPlugin {
     supportedFileExtensions = [".css", ".scss", ".js", ".ts"];
@@ -26,14 +26,19 @@ class CommentConnector implements ConnectPlugin {
 
     async process(context: ComponentConfig): Promise<ComponentData> {
         const file = await readFile(path.resolve(context.path));
-        const comments = parse(file.toString(), { trim: false });
+        const comments = parse(
+            file.toString(),
+            {
+                spacing: 'preserve'
+            }
+        );
         let [componentComment] = comments.filter(
             comment => comment.tags.find(
                 tag => tag.tag === "zeplin"
             )
         );
         if (!componentComment && comments.length > 0) {
-            componentComment = comments[0] as Comment;
+            componentComment = comments[0];
         }
         let description = "";
         let snippet = "";
